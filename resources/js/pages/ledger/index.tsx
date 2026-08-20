@@ -566,8 +566,8 @@ export default function LedgerIndex({ stats, accountStats, ledgerEntries, accoun
 
                 {/* 5. TRANSACTION DETAIL MODAL */}
                 <Dialog open={!!selectedEntry} onOpenChange={(open) => !open && setSelectedEntry(null)}>
-                    <DialogContent className="max-w-lg">
-                        <DialogHeader className="border-b pb-3">
+                    <DialogContent className="max-w-3xl sm:max-w-3xl">
+                        <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2 font-mono">
                                 <BookOpen className="size-5 text-indigo-600 dark:text-indigo-400" />
                                 {selectedEntry?.reference}
@@ -576,50 +576,49 @@ export default function LedgerIndex({ stats, accountStats, ledgerEntries, accoun
                         </DialogHeader>
 
                         {selectedEntry && (
-                            <div className="space-y-4 pt-2 text-sm">
-                                <div className="grid grid-cols-2 gap-4 p-3 rounded-lg bg-muted/40">
-                                    <div>
-                                        <div className="text-xs font-semibold text-muted-foreground uppercase">Transaction Date</div>
-                                        <div className="font-bold text-foreground mt-0.5">{new Date(selectedEntry.transaction_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+                            <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                                <div className="flex-1 overflow-y-auto p-6 space-y-4 text-sm">
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-3 rounded-lg bg-muted/40">
+                                        <div>
+                                            <div className="text-xs font-semibold text-muted-foreground uppercase">Transaction Date</div>
+                                            <div className="font-bold text-foreground mt-0.5">{new Date(selectedEntry.transaction_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-semibold text-muted-foreground uppercase">Transaction Type</div>
+                                            <div className="font-semibold text-indigo-600 capitalize mt-0.5">{selectedEntry.transaction_type.replace('_', ' ')}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-semibold text-muted-foreground uppercase">Company Account</div>
+                                            <div className="font-semibold text-foreground mt-0.5">{selectedEntry.account?.name || '—'}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-semibold text-muted-foreground uppercase">Recorded By</div>
+                                            <div className="text-foreground mt-0.5">{selectedEntry.creator?.name || 'System Auto Posting'}</div>
+                                        </div>
                                     </div>
+
+                                    <div className="grid grid-cols-3 gap-3 p-3 rounded-xl border">
+                                        <div>
+                                            <div className="text-xs font-semibold text-emerald-600 uppercase">Debit (+Inflow)</div>
+                                            <div className="font-mono font-bold text-emerald-600 mt-0.5">{formatCurrency(Number(selectedEntry.debit))}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-semibold text-rose-600 uppercase">Credit (-Outflow)</div>
+                                            <div className="font-mono font-bold text-rose-600 mt-0.5">{formatCurrency(Number(selectedEntry.credit))}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-semibold text-muted-foreground uppercase">Running Balance</div>
+                                            <div className="font-mono font-bold text-foreground mt-0.5">{selectedEntry.running_balance !== undefined ? formatCurrency(selectedEntry.running_balance) : '—'}</div>
+                                        </div>
+                                    </div>
+
                                     <div>
-                                        <div className="text-xs font-semibold text-muted-foreground uppercase">Transaction Type</div>
-                                        <div className="font-semibold text-indigo-600 capitalize mt-0.5">{selectedEntry.transaction_type.replace('_', ' ')}</div>
+                                        <div className="text-xs font-semibold text-muted-foreground uppercase">Description</div>
+                                        <div className="text-foreground mt-0.5 font-medium">{selectedEntry.description || 'No description recorded.'}</div>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <div className="text-xs font-semibold text-muted-foreground uppercase">Company Account</div>
-                                        <div className="font-semibold text-foreground mt-0.5">{selectedEntry.account?.name || '—'}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-xs font-semibold text-muted-foreground uppercase">Recorded By</div>
-                                        <div className="text-foreground mt-0.5">{selectedEntry.creator?.name || 'System Auto Posting'}</div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-3 p-3 rounded-xl border">
-                                    <div>
-                                        <div className="text-xs font-semibold text-emerald-600 uppercase">Debit (+Inflow)</div>
-                                        <div className="font-mono font-bold text-emerald-600 mt-0.5">{formatCurrency(Number(selectedEntry.debit))}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-xs font-semibold text-rose-600 uppercase">Credit (-Outflow)</div>
-                                        <div className="font-mono font-bold text-rose-600 mt-0.5">{formatCurrency(Number(selectedEntry.credit))}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-xs font-semibold text-muted-foreground uppercase">Running Balance</div>
-                                        <div className="font-mono font-bold text-foreground mt-0.5">{selectedEntry.running_balance !== undefined ? formatCurrency(selectedEntry.running_balance) : '—'}</div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div className="text-xs font-semibold text-muted-foreground uppercase">Description</div>
-                                    <div className="text-foreground mt-0.5 font-medium">{selectedEntry.description || 'No description recorded.'}</div>
-                                </div>
-
-                                <DialogFooter className="border-t pt-4 mt-4 flex items-center justify-between">
+                                <DialogFooter className="flex items-center justify-between">
                                     {resolveSourceUrl(selectedEntry) ? (
                                         <Link href={resolveSourceUrl(selectedEntry)!} className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
                                             <ExternalLink className="size-4" /> Open Source Module Record

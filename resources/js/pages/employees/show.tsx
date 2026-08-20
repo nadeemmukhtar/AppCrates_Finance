@@ -820,7 +820,7 @@ export default function EmployeeShow({ employee, accounts, activeTab = 'overview
 
                 {/* MODAL 1: UPDATE SALARY */}
                 <Dialog open={isUpdateSalaryOpen} onOpenChange={(open) => !open && setIsUpdateSalaryOpen(false)}>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="max-w-3xl sm:max-w-3xl w-full">
                         <DialogHeader className="border-b pb-3">
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <DollarSign className="size-5 text-indigo-600 dark:text-indigo-400" />
@@ -830,29 +830,31 @@ export default function EmployeeShow({ employee, accounts, activeTab = 'overview
                         </DialogHeader>
 
                         <form onSubmit={handleSalarySubmit} className="space-y-4 pt-2">
-                            <div className="space-y-2">
-                                <Label>Effective Date <span className="text-destructive">*</span></Label>
-                                <Input
-                                    type="date"
-                                    value={salaryForm.data.effective_date}
-                                    onChange={(e) => salaryForm.setData('effective_date', e.target.value)}
-                                    required
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Effective Date <span className="text-destructive">*</span></Label>
+                                    <Input
+                                        type="date"
+                                        value={salaryForm.data.effective_date}
+                                        onChange={(e) => salaryForm.setData('effective_date', e.target.value)}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Basic Salary (PKR) <span className="text-destructive">*</span></Label>
+                                    <Input
+                                        type="number"
+                                        step="0.01"
+                                        value={salaryForm.data.basic_salary}
+                                        onChange={(e) => salaryForm.setData('basic_salary', e.target.value)}
+                                        required
+                                    />
+                                    {salaryForm.errors.basic_salary && <p className="text-xs text-destructive">{salaryForm.errors.basic_salary}</p>}
+                                </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Basic Salary (PKR) <span className="text-destructive">*</span></Label>
-                                <Input
-                                    type="number"
-                                    step="0.01"
-                                    value={salaryForm.data.basic_salary}
-                                    onChange={(e) => salaryForm.setData('basic_salary', e.target.value)}
-                                    required
-                                />
-                                {salaryForm.errors.basic_salary && <p className="text-xs text-destructive">{salaryForm.errors.basic_salary}</p>}
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label>Allowances (PKR)</Label>
                                     <Input
@@ -932,8 +934,8 @@ export default function EmployeeShow({ employee, accounts, activeTab = 'overview
 
                 {/* MODAL 3: PAY SALARY */}
                 <Dialog open={!!selectedPeriodForPayment} onOpenChange={(open) => !open && setSelectedPeriodForPayment(null)}>
-                    <DialogContent className="max-w-lg">
-                        <DialogHeader className="border-b pb-3">
+                    <DialogContent className="max-w-3xl sm:max-w-3xl">
+                        <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <Banknote className="size-5 text-emerald-600 dark:text-emerald-400" />
                                 Record Salary Payment
@@ -944,88 +946,92 @@ export default function EmployeeShow({ employee, accounts, activeTab = 'overview
                         </DialogHeader>
 
                         {selectedPeriodForPayment && (
-                            <form onSubmit={handlePaymentSubmit} className="space-y-4 pt-2">
-                                <div className="grid grid-cols-3 gap-3 p-3 rounded-lg bg-muted/40 text-xs">
-                                    <div>
-                                        <div className="font-semibold text-muted-foreground uppercase">Total Salary</div>
-                                        <div className="font-mono font-bold text-foreground mt-0.5">{formatCurrency(Number(selectedPeriodForPayment.salary_amount))}</div>
+                            <form onSubmit={handlePaymentSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                    <div className="grid grid-cols-3 gap-3 p-3 rounded-lg bg-muted/40 text-xs">
+                                        <div>
+                                            <div className="font-semibold text-muted-foreground uppercase">Total Salary</div>
+                                            <div className="font-mono font-bold text-foreground mt-0.5">{formatCurrency(Number(selectedPeriodForPayment.salary_amount))}</div>
+                                        </div>
+                                        <div>
+                                            <div className="font-semibold text-emerald-600 dark:text-emerald-400 uppercase">Already Paid</div>
+                                            <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{formatCurrency(Number(selectedPeriodForPayment.total_paid))}</div>
+                                        </div>
+                                        <div>
+                                            <div className="font-semibold text-amber-600 dark:text-amber-400 uppercase">Remaining</div>
+                                            <div className="font-mono font-bold text-amber-600 dark:text-amber-400 mt-0.5">{formatCurrency(Number(selectedPeriodForPayment.remaining_amount))}</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div className="font-semibold text-emerald-600 dark:text-emerald-400 uppercase">Already Paid</div>
-                                        <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{formatCurrency(Number(selectedPeriodForPayment.total_paid))}</div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Payment Amount (PKR) <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                value={paymentForm.data.amount}
+                                                onChange={(e) => paymentForm.setData('amount', e.target.value)}
+                                                required
+                                            />
+                                            {paymentForm.errors.amount && <p className="text-xs text-destructive">{paymentForm.errors.amount}</p>}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Payment Date <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                type="date"
+                                                value={paymentForm.data.payment_date}
+                                                onChange={(e) => paymentForm.setData('payment_date', e.target.value)}
+                                                required
+                                            />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div className="font-semibold text-amber-600 dark:text-amber-400 uppercase">Remaining</div>
-                                        <div className="font-mono font-bold text-amber-600 dark:text-amber-400 mt-0.5">{formatCurrency(Number(selectedPeriodForPayment.remaining_amount))}</div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Payment Method <span className="text-destructive">*</span></Label>
+                                            <ReactSelect
+                                                options={paymentMethodOptions}
+                                                value={paymentMethodOptions.find(opt => opt.value === paymentForm.data.payment_method) || null}
+                                                onChange={(opt) => paymentForm.setData('payment_method', opt ? (opt.value as any) : 'bank_transfer')}
+                                                styles={customReactSelectStyles}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Company Paying Account <span className="text-destructive">*</span></Label>
+                                            <ReactSelect
+                                                options={accountSelectOptions}
+                                                value={accountSelectOptions.find(opt => opt.value === paymentForm.data.account_id) || null}
+                                                onChange={(opt) => paymentForm.setData('account_id', opt ? opt.value : '')}
+                                                styles={customReactSelectStyles}
+                                            />
+                                            {paymentForm.errors.account_id && <p className="text-xs text-destructive">{paymentForm.errors.account_id}</p>}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Transaction / Cheque Reference</Label>
+                                            <Input
+                                                placeholder="e.g. TXN-998112"
+                                                value={paymentForm.data.transaction_reference}
+                                                onChange={(e) => paymentForm.setData('transaction_reference', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Notes (Optional)</Label>
+                                            <Input
+                                                placeholder="e.g. Disbursed via online bank portal"
+                                                value={paymentForm.data.notes}
+                                                onChange={(e) => paymentForm.setData('notes', e.target.value)}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Payment Amount (PKR) <span className="text-destructive">*</span></Label>
-                                        <Input
-                                            type="number"
-                                            step="0.01"
-                                            value={paymentForm.data.amount}
-                                            onChange={(e) => paymentForm.setData('amount', e.target.value)}
-                                            required
-                                        />
-                                        {paymentForm.errors.amount && <p className="text-xs text-destructive">{paymentForm.errors.amount}</p>}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Payment Date <span className="text-destructive">*</span></Label>
-                                        <Input
-                                            type="date"
-                                            value={paymentForm.data.payment_date}
-                                            onChange={(e) => paymentForm.setData('payment_date', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Payment Method <span className="text-destructive">*</span></Label>
-                                        <ReactSelect
-                                            options={paymentMethodOptions}
-                                            value={paymentMethodOptions.find(opt => opt.value === paymentForm.data.payment_method) || null}
-                                            onChange={(opt) => paymentForm.setData('payment_method', opt ? (opt.value as any) : 'bank_transfer')}
-                                            styles={customReactSelectStyles}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Company Paying Account <span className="text-destructive">*</span></Label>
-                                        <ReactSelect
-                                            options={accountSelectOptions}
-                                            value={accountSelectOptions.find(opt => opt.value === paymentForm.data.account_id) || null}
-                                            onChange={(opt) => paymentForm.setData('account_id', opt ? opt.value : '')}
-                                            styles={customReactSelectStyles}
-                                        />
-                                        {paymentForm.errors.account_id && <p className="text-xs text-destructive">{paymentForm.errors.account_id}</p>}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Transaction / Cheque Reference</Label>
-                                    <Input
-                                        placeholder="e.g. TXN-998112"
-                                        value={paymentForm.data.transaction_reference}
-                                        onChange={(e) => paymentForm.setData('transaction_reference', e.target.value)}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Notes (Optional)</Label>
-                                    <Input
-                                        placeholder="e.g. Disbursed via online bank portal"
-                                        value={paymentForm.data.notes}
-                                        onChange={(e) => paymentForm.setData('notes', e.target.value)}
-                                    />
-                                </div>
-
-                                <DialogFooter className="border-t pt-4 mt-4">
+                                <DialogFooter>
                                     <Button type="button" variant="outline" onClick={() => setSelectedPeriodForPayment(null)}>Cancel</Button>
                                     <Button type="submit" disabled={paymentForm.processing} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6">
                                         Confirm Salary Payment

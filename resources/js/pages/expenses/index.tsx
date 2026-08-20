@@ -39,6 +39,7 @@ import {
     Wallet, 
     XCircle 
 } from 'lucide-react';
+import FileDropzone from '@/components/file-dropzone';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -646,7 +647,7 @@ export default function ExpensesIndex({ stats, expenses, categories, accounts, f
                 {/* 5. ADD EXPENSE MODAL (HORIZONTAL MULTI-COLUMN LAYOUT) */}
                 <Dialog open={isCreateModalOpen} onOpenChange={(open) => !open && setIsCreateModalOpen(false)}>
                     <DialogContent className="max-w-4xl sm:max-w-4xl">
-                        <DialogHeader className="border-b pb-3">
+                        <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <TrendingDown className="size-5 text-rose-600 dark:text-rose-400" />
                                 Record Operating Expense
@@ -654,143 +655,136 @@ export default function ExpensesIndex({ stats, expenses, categories, accounts, f
                             <DialogDescription>Record a company operating expense to deduct account balance and post ledger entry.</DialogDescription>
                         </DialogHeader>
 
-                        <form onSubmit={handleCreateSubmit} className="space-y-5 pt-2">
-                            {/* Section 1: Expense Details */}
-                            <div className="space-y-3">
-                                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">
-                                    1. Expense Details
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Expense Date <span className="text-destructive">*</span></Label>
-                                        <Input
-                                            type="date"
-                                            value={createForm.data.expense_date}
-                                            onChange={(e) => createForm.setData('expense_date', e.target.value)}
-                                            required
-                                        />
+                        <form onSubmit={handleCreateSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                {/* Section 1: Expense Details */}
+                                <div className="space-y-3">
+                                    <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">
+                                        1. Expense Details
                                     </div>
-
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <Label>Category <span className="text-destructive">*</span></Label>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => setIsQuickAddCategoryOpen(true)}
-                                                className="h-5 px-1 text-[11px] text-rose-600 dark:text-rose-400 hover:text-rose-700 gap-1"
-                                            >
-                                                <Plus className="size-3" /> Quick Add
-                                            </Button>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Expense Date <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                type="date"
+                                                value={createForm.data.expense_date}
+                                                onChange={(e) => createForm.setData('expense_date', e.target.value)}
+                                                required
+                                            />
                                         </div>
-                                        <ReactSelect
-                                            options={categoryFormSelectOptions}
-                                            value={categoryFormSelectOptions.find(o => o.value === createForm.data.category_id) || null}
-                                            onChange={(opt) => createForm.setData('category_id', opt ? opt.value : '')}
-                                            styles={customReactSelectStyles}
-                                        />
-                                        {createForm.errors.category_id && <p className="text-xs text-destructive">{createForm.errors.category_id}</p>}
+
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <Label>Category <span className="text-destructive">*</span></Label>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setIsQuickAddCategoryOpen(true)}
+                                                    className="h-5 px-1 text-[11px] text-rose-600 dark:text-rose-400 hover:text-rose-700 gap-1"
+                                                >
+                                                    <Plus className="size-3" /> Quick Add
+                                                </Button>
+                                            </div>
+                                            <ReactSelect
+                                                options={categoryFormSelectOptions}
+                                                value={categoryFormSelectOptions.find(o => o.value === createForm.data.category_id) || null}
+                                                onChange={(opt) => createForm.setData('category_id', opt ? opt.value : '')}
+                                                styles={customReactSelectStyles}
+                                            />
+                                            {createForm.errors.category_id && <p className="text-xs text-destructive">{createForm.errors.category_id}</p>}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Amount (PKR) <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="e.g. 200000"
+                                                value={createForm.data.amount}
+                                                onChange={(e) => createForm.setData('amount', e.target.value)}
+                                                required
+                                            />
+                                            {createForm.errors.amount && <p className="text-xs text-destructive">{createForm.errors.amount}</p>}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section 2: Account & Payment Method */}
+                                <div className="space-y-3">
+                                    <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">
+                                        2. Account & Payment Method
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Company Paying Account <span className="text-destructive">*</span></Label>
+                                            <ReactSelect
+                                                options={accountSelectOptions}
+                                                value={accountSelectOptions.find(o => o.value === createForm.data.account_id) || null}
+                                                onChange={(opt) => createForm.setData('account_id', opt ? opt.value : '')}
+                                                styles={customReactSelectStyles}
+                                            />
+                                            {createForm.errors.account_id && <p className="text-xs text-destructive">{createForm.errors.account_id}</p>}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Payment Method <span className="text-destructive">*</span></Label>
+                                            <ReactSelect
+                                                options={paymentMethodOptions.filter(o => o.value !== 'all')}
+                                                value={paymentMethodOptions.find(o => o.value === createForm.data.payment_method) || null}
+                                                onChange={(opt) => createForm.setData('payment_method', opt ? (opt.value as any) : 'bank_transfer')}
+                                                styles={customReactSelectStyles}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>External / Cheque / Txn Ref</Label>
+                                            <Input
+                                                placeholder="e.g. INV-9901 / CHQ-8822"
+                                                value={createForm.data.external_reference}
+                                                onChange={(e) => createForm.setData('external_reference', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section 3: Summary & Notes */}
+                                <div className="space-y-3">
+                                    <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">
+                                        3. Summary, Notes & Receipt Attachment
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Description / Summary</Label>
+                                            <Input
+                                                placeholder="e.g. August Office Rent Payment"
+                                                value={createForm.data.description}
+                                                onChange={(e) => createForm.setData('description', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Internal Notes (Optional)</Label>
+                                            <Input
+                                                placeholder="e.g. Approved by Finance Director"
+                                                value={createForm.data.notes}
+                                                onChange={(e) => createForm.setData('notes', e.target.value)}
+                                            />
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label>Amount (PKR) <span className="text-destructive">*</span></Label>
-                                        <Input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="e.g. 200000"
-                                            value={createForm.data.amount}
-                                            onChange={(e) => createForm.setData('amount', e.target.value)}
-                                            required
-                                        />
-                                        {createForm.errors.amount && <p className="text-xs text-destructive">{createForm.errors.amount}</p>}
-                                    </div>
+                                    <FileDropzone
+                                        file={createForm.data.attachment}
+                                        onFileSelect={(file) => createForm.setData('attachment', file)}
+                                        displayName={createForm.data.display_name}
+                                        onDisplayNameChange={(val) => createForm.setData('display_name', val)}
+                                        label="Attachment / Expense Receipt (Optional)"
+                                        description="Drag & drop receipt image or PDF here, or click to browse"
+                                    />
                                 </div>
                             </div>
 
-                            {/* Section 2: Account & Payment Method */}
-                            <div className="space-y-3">
-                                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">
-                                    2. Account & Payment Method
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Company Paying Account <span className="text-destructive">*</span></Label>
-                                        <ReactSelect
-                                            options={accountSelectOptions}
-                                            value={accountSelectOptions.find(o => o.value === createForm.data.account_id) || null}
-                                            onChange={(opt) => createForm.setData('account_id', opt ? opt.value : '')}
-                                            styles={customReactSelectStyles}
-                                        />
-                                        {createForm.errors.account_id && <p className="text-xs text-destructive">{createForm.errors.account_id}</p>}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Payment Method <span className="text-destructive">*</span></Label>
-                                        <ReactSelect
-                                            options={paymentMethodOptions.filter(o => o.value !== 'all')}
-                                            value={paymentMethodOptions.find(o => o.value === createForm.data.payment_method) || null}
-                                            onChange={(opt) => createForm.setData('payment_method', opt ? (opt.value as any) : 'bank_transfer')}
-                                            styles={customReactSelectStyles}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>External / Cheque / Txn Ref</Label>
-                                        <Input
-                                            placeholder="e.g. INV-9901 / CHQ-8822"
-                                            value={createForm.data.external_reference}
-                                            onChange={(e) => createForm.setData('external_reference', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Section 3: Summary & Notes */}
-                            <div className="space-y-3">
-                                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">
-                                    3. Summary, Notes & Receipt Attachment
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Description / Summary</Label>
-                                        <Input
-                                            placeholder="e.g. August Office Rent Payment"
-                                            value={createForm.data.description}
-                                            onChange={(e) => createForm.setData('description', e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Internal Notes (Optional)</Label>
-                                        <Input
-                                            placeholder="e.g. Approved by Finance Director"
-                                            value={createForm.data.notes}
-                                            onChange={(e) => createForm.setData('notes', e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Attachment / Receipt (Optional)</Label>
-                                        <Input
-                                            type="file"
-                                            accept="image/*,.pdf"
-                                            onChange={(e) => createForm.setData('attachment', e.target.files ? e.target.files[0] : null)}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Attachment Display Name (Optional)</Label>
-                                        <Input
-                                            placeholder="e.g. Office Rent Receipt PDF"
-                                            value={createForm.data.display_name || ''}
-                                            onChange={(e) => createForm.setData('display_name', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <DialogFooter className="border-t pt-4 mt-4">
+                            <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
                                 <Button type="submit" disabled={createForm.processing} className="bg-rose-600 hover:bg-rose-700 text-white font-semibold px-6">
                                     Post Expense Record
@@ -803,7 +797,7 @@ export default function ExpensesIndex({ stats, expenses, categories, accounts, f
                 {/* 6. EDIT EXPENSE MODAL */}
                 <Dialog open={!!editingExpense} onOpenChange={(open) => !open && setEditingExpense(null)}>
                     <DialogContent className="max-w-4xl sm:max-w-4xl">
-                        <DialogHeader className="border-b pb-3">
+                        <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <Edit className="size-5 text-rose-600 dark:text-rose-400" />
                                 Edit Operating Expense ({editingExpense?.reference})
@@ -812,89 +806,91 @@ export default function ExpensesIndex({ stats, expenses, categories, accounts, f
                         </DialogHeader>
 
                         {editingExpense && (
-                            <form onSubmit={handleEditSubmit} className="space-y-5 pt-2">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Expense Date <span className="text-destructive">*</span></Label>
-                                        <Input
-                                            type="date"
-                                            value={editForm.data.expense_date}
-                                            onChange={(e) => editForm.setData('expense_date', e.target.value)}
-                                            required
-                                        />
+                            <form onSubmit={handleEditSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Expense Date <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                type="date"
+                                                value={editForm.data.expense_date}
+                                                onChange={(e) => editForm.setData('expense_date', e.target.value)}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Category <span className="text-destructive">*</span></Label>
+                                            <ReactSelect
+                                                options={categoryFormSelectOptions}
+                                                value={categoryFormSelectOptions.find(o => o.value === editForm.data.category_id) || null}
+                                                onChange={(opt) => editForm.setData('category_id', opt ? opt.value : '')}
+                                                styles={customReactSelectStyles}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Amount (PKR) <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                value={editForm.data.amount}
+                                                onChange={(e) => editForm.setData('amount', e.target.value)}
+                                                required
+                                            />
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label>Category <span className="text-destructive">*</span></Label>
-                                        <ReactSelect
-                                            options={categoryFormSelectOptions}
-                                            value={categoryFormSelectOptions.find(o => o.value === editForm.data.category_id) || null}
-                                            onChange={(opt) => editForm.setData('category_id', opt ? opt.value : '')}
-                                            styles={customReactSelectStyles}
-                                        />
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Company Paying Account <span className="text-destructive">*</span></Label>
+                                            <ReactSelect
+                                                options={accountSelectOptions}
+                                                value={accountSelectOptions.find(o => o.value === editForm.data.account_id) || null}
+                                                onChange={(opt) => editForm.setData('account_id', opt ? opt.value : '')}
+                                                styles={customReactSelectStyles}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Payment Method <span className="text-destructive">*</span></Label>
+                                            <ReactSelect
+                                                options={paymentMethodOptions.filter(o => o.value !== 'all')}
+                                                value={paymentMethodOptions.find(o => o.value === editForm.data.payment_method) || null}
+                                                onChange={(opt) => editForm.setData('payment_method', opt ? (opt.value as any) : 'bank_transfer')}
+                                                styles={customReactSelectStyles}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>External Ref</Label>
+                                            <Input
+                                                value={editForm.data.external_reference}
+                                                onChange={(e) => editForm.setData('external_reference', e.target.value)}
+                                            />
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label>Amount (PKR) <span className="text-destructive">*</span></Label>
-                                        <Input
-                                            type="number"
-                                            step="0.01"
-                                            value={editForm.data.amount}
-                                            onChange={(e) => editForm.setData('amount', e.target.value)}
-                                            required
-                                        />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Description / Summary</Label>
+                                            <Input
+                                                value={editForm.data.description}
+                                                onChange={(e) => editForm.setData('description', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Internal Notes (Optional)</Label>
+                                            <Input
+                                                value={editForm.data.notes}
+                                                onChange={(e) => editForm.setData('notes', e.target.value)}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Company Paying Account <span className="text-destructive">*</span></Label>
-                                        <ReactSelect
-                                            options={accountSelectOptions}
-                                            value={accountSelectOptions.find(o => o.value === editForm.data.account_id) || null}
-                                            onChange={(opt) => editForm.setData('account_id', opt ? opt.value : '')}
-                                            styles={customReactSelectStyles}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Payment Method <span className="text-destructive">*</span></Label>
-                                        <ReactSelect
-                                            options={paymentMethodOptions.filter(o => o.value !== 'all')}
-                                            value={paymentMethodOptions.find(o => o.value === editForm.data.payment_method) || null}
-                                            onChange={(opt) => editForm.setData('payment_method', opt ? (opt.value as any) : 'bank_transfer')}
-                                            styles={customReactSelectStyles}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>External Ref</Label>
-                                        <Input
-                                            value={editForm.data.external_reference}
-                                            onChange={(e) => editForm.setData('external_reference', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Description / Summary</Label>
-                                        <Input
-                                            value={editForm.data.description}
-                                            onChange={(e) => editForm.setData('description', e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Internal Notes (Optional)</Label>
-                                        <Input
-                                            value={editForm.data.notes}
-                                            onChange={(e) => editForm.setData('notes', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-
-                                <DialogFooter className="border-t pt-4 mt-4">
+                                <DialogFooter>
                                     <Button type="button" variant="outline" onClick={() => setEditingExpense(null)}>Cancel</Button>
                                     <Button type="submit" disabled={editForm.processing} className="bg-rose-600 hover:bg-rose-700 text-white font-semibold px-6">
                                         Save & Adjust Financials

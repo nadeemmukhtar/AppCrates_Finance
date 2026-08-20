@@ -36,6 +36,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import FileDropzone from '@/components/file-dropzone';
 import type { FinancialAccount, Loan, LoanPayment } from '@/types/loans';
 
 interface Props {
@@ -63,6 +64,8 @@ export default function LoanShow({ loan, accounts }: Props) {
         account_id: accounts.length > 0 ? String(accounts[0].id) : '',
         transaction_reference: '',
         notes: '',
+        attachment: null as File | null,
+        display_name: '',
     });
 
     const formatCurrency = (val: number) => {
@@ -560,85 +563,135 @@ export default function LoanShow({ loan, accounts }: Props) {
 
                 {/* RECORD REPAYMENT DIALOG */}
                 <Dialog open={isRepaymentModalOpen} onOpenChange={setIsRepaymentModalOpen}>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="max-w-4xl sm:max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                                <PlusCircle className="size-5" />
+                                <PlusCircle className="size-5 text-emerald-600" />
                                 Record Repayment
                             </DialogTitle>
                             <DialogDescription>
-                                Record a payment for loan <span className="font-semibold text-foreground">{loan.reference}</span>.
+                                Record a payment for loan <span className="font-semibold text-foreground">{loan.reference}</span> ({loan.lender?.name}).
                             </DialogDescription>
                         </DialogHeader>
 
                         <form onSubmit={handleRepaymentSubmit} className="space-y-4 py-2">
-                            <div className="space-y-2">
-                                <Label>Repayment Amount (PKR) *</Label>
-                                <Input
-                                    type="number"
-                                    step="0.01"
-                                    max={loan.remaining_balance}
-                                    value={repaymentForm.data.amount}
-                                    onChange={(e) => repaymentForm.setData('amount', e.target.value)}
-                                />
-                                {repaymentForm.errors.amount && <p className="text-xs text-destructive">{repaymentForm.errors.amount}</p>}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Left Column: Form Inputs */}
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Repayment Amount (PKR) *</Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                max={loan.remaining_balance}
+                                                value={repaymentForm.data.amount}
+                                                onChange={(e) => repaymentForm.setData('amount', e.target.value)}
+                                                required
+                                            />
+                                            {repaymentForm.errors.amount && <p className="text-xs text-destructive">{repaymentForm.errors.amount}</p>}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Payment Date *</Label>
+                                            <Input
+                                                type="date"
+                                                value={repaymentForm.data.payment_date}
+                                                onChange={(e) => repaymentForm.setData('payment_date', e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Payment Method *</Label>
+                                            <Select
+                                                value={repaymentForm.data.payment_method}
+                                                onValueChange={(val: any) => repaymentForm.setData('payment_method', val)}
+                                            >
+                                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                                                    <SelectItem value="cash">Cash</SelectItem>
+                                                    <SelectItem value="cheque">Cheque</SelectItem>
+                                                    <SelectItem value="other">Other</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Paying Cash/Bank Account *</Label>
+                                            <Select
+                                                value={repaymentForm.data.account_id}
+                                                onValueChange={(val) => repaymentForm.setData('account_id', val)}
+                                            >
+                                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    {accounts.map((acc) => (
+                                                        <SelectItem key={acc.id} value={String(acc.id)}>
+                                                            {acc.name} ({formatCurrency(acc.current_balance)})
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Transaction Reference / Cheque #</Label>
+                                        <Input
+                                            placeholder="e.g. TRX-998823"
+                                            value={repaymentForm.data.transaction_reference}
+                                            onChange={(e) => repaymentForm.setData('transaction_reference', e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Notes / Remarks</Label>
+                                        <Input
+                                            placeholder="Optional payment notes..."
+                                            value={repaymentForm.data.notes}
+                                            onChange={(e) => repaymentForm.setData('notes', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Right Column: Loan Summary & Attachment */}
+                                <div className="space-y-4">
+                                    <div className="rounded-xl border bg-muted/40 p-4 shadow-sm space-y-2.5">
+                                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider border-b pb-1">
+                                            Loan Balance Summary
+                                        </div>
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-muted-foreground">Original Loan Amount:</span>
+                                            <span className="font-semibold font-mono text-foreground">{formatCurrency(Number(loan.original_amount))}</span>
+                                        </div>
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-muted-foreground">Total Repaid to Date:</span>
+                                            <span className="font-semibold font-mono text-emerald-600 dark:text-emerald-400">{formatCurrency(loan.total_repaid)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm border-t pt-2 border-border font-bold">
+                                            <span className="text-foreground">Outstanding Balance:</span>
+                                            <span className="font-mono text-indigo-600 dark:text-indigo-400">{formatCurrency(loan.remaining_balance)}</span>
+                                        </div>
+                                    </div>
+
+                                    <FileDropzone
+                                        file={repaymentForm.data.attachment}
+                                        onFileSelect={(file) => repaymentForm.setData('attachment', file)}
+                                        displayName={repaymentForm.data.display_name}
+                                        onDisplayNameChange={(val) => repaymentForm.setData('display_name', val)}
+                                        label="Attachment / Bank Receipt (Optional)"
+                                        description="Drag & drop payment receipt or slip here, or click to browse"
+                                    />
+                                </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Payment Method *</Label>
-                                <Select
-                                    value={repaymentForm.data.payment_method}
-                                    onValueChange={(val: any) => repaymentForm.setData('payment_method', val)}
-                                >
-                                    <SelectTrigger><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                                        <SelectItem value="cash">Cash</SelectItem>
-                                        <SelectItem value="cheque">Cheque</SelectItem>
-                                        <SelectItem value="other">Other</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Paying Cash/Bank Account *</Label>
-                                <Select
-                                    value={repaymentForm.data.account_id}
-                                    onValueChange={(val) => repaymentForm.setData('account_id', val)}
-                                >
-                                    <SelectTrigger><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                        {accounts.map((acc) => (
-                                            <SelectItem key={acc.id} value={String(acc.id)}>
-                                                {acc.name} ({formatCurrency(acc.current_balance)})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Payment Date *</Label>
-                                <Input
-                                    type="date"
-                                    value={repaymentForm.data.payment_date}
-                                    onChange={(e) => repaymentForm.setData('payment_date', e.target.value)}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Transaction Reference / Cheque #</Label>
-                                <Input
-                                    placeholder="e.g. TRX-998823"
-                                    value={repaymentForm.data.transaction_reference}
-                                    onChange={(e) => repaymentForm.setData('transaction_reference', e.target.value)}
-                                />
-                            </div>
-
-                            <DialogFooter className="pt-4">
+                            <DialogFooter className="border-t pt-4 mt-4">
                                 <Button type="button" variant="outline" onClick={() => setIsRepaymentModalOpen(false)}>Cancel</Button>
-                                <Button type="submit" disabled={repaymentForm.processing}>
-                                    Confirm Repayment
+                                <Button type="submit" disabled={repaymentForm.processing} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6">
+                                    {repaymentForm.processing ? 'Saving...' : 'Confirm Repayment'}
                                 </Button>
                             </DialogFooter>
                         </form>

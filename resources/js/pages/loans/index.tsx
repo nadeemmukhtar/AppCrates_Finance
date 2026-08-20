@@ -39,6 +39,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import FileDropzone from '@/components/file-dropzone';
 import type { FinancialAccount, Lender, LenderType, Loan, LoanStats } from '@/types/loans';
 
 const customReactSelectStyles = {
@@ -513,131 +514,125 @@ export default function LoansIndex({ stats, loans, lenders, accounts, filters }:
 
                 {/* 1. RECORD NEW LOAN DIALOG */}
                 <Dialog open={isCreateLoanOpen} onOpenChange={setIsCreateLoanOpen}>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-4xl sm:max-w-4xl">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                                <HandCoins className="size-5" />
-                                Record New Loan
+                                <PlusCircle className="size-5 text-indigo-600 dark:text-indigo-400" />
+                                Record New Loan Received
                             </DialogTitle>
                             <DialogDescription>
-                                Add a new borrowed loan record. This will increase your company's cash/bank balance and record a liability.
+                                Record a loan taken from a lender or bank. This will add the funds to your selected account.
                             </DialogDescription>
                         </DialogHeader>
 
-                        <form onSubmit={handleCreateLoanSubmit} className="space-y-4 py-2">
-                            {/* Row 1: Lender (Full Width) */}
-                            <div className="space-y-2 w-full">
-                                <Label>Lender *</Label>
-                                <ReactSelect
-                                    options={dropdownLenderOptions}
-                                    value={dropdownLenderOptions.find(opt => opt.value === createLoanForm.data.lender_id) || null}
-                                    onChange={(opt) => createLoanForm.setData('lender_id', opt ? opt.value : '')}
-                                    styles={customReactSelectStyles}
-                                    placeholder="Select Lender"
-                                    className="w-full"
-                                />
-                                {createLoanForm.errors.lender_id && <p className="text-xs text-destructive">{createLoanForm.errors.lender_id}</p>}
-                            </div>
+                        <form onSubmit={handleCreateLoanSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                {/* Horizontal Row 1: Lender & Account */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Lender *</Label>
+                                        <ReactSelect
+                                            options={dropdownLenderOptions}
+                                            value={dropdownLenderOptions.find(opt => opt.value === createLoanForm.data.lender_id) || null}
+                                            onChange={(opt) => createLoanForm.setData('lender_id', opt ? opt.value : '')}
+                                            styles={customReactSelectStyles}
+                                            placeholder="Select Lender"
+                                            className="w-full"
+                                        />
+                                        {createLoanForm.errors.lender_id && <p className="text-xs text-destructive">{createLoanForm.errors.lender_id}</p>}
+                                    </div>
 
-                            {/* Row 2: Receiving Cash/Bank Account (Full Width) */}
-                            <div className="space-y-2 w-full">
-                                <Label>Receiving Cash/Bank Account *</Label>
-                                <ReactSelect
-                                    options={dropdownAccountOptions}
-                                    value={dropdownAccountOptions.find(opt => opt.value === createLoanForm.data.destination_account_id) || null}
-                                    onChange={(opt) => createLoanForm.setData('destination_account_id', opt ? opt.value : '')}
-                                    styles={customReactSelectStyles}
-                                    placeholder="Select Receiving Account"
-                                    className="w-full"
-                                />
-                                {createLoanForm.errors.destination_account_id && <p className="text-xs text-destructive">{createLoanForm.errors.destination_account_id}</p>}
-                            </div>
-
-                            {/* Row 3 onwards: 2 Column Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                                <div className="space-y-2">
-                                    <Label>Original Loan Amount (PKR) *</Label>
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="500000"
-                                        value={createLoanForm.data.original_amount}
-                                        onChange={(e) => createLoanForm.setData('original_amount', e.target.value)}
-                                    />
-                                    {createLoanForm.errors.original_amount && <p className="text-xs text-destructive">{createLoanForm.errors.original_amount}</p>}
+                                    <div className="space-y-2">
+                                        <Label>Receiving Cash/Bank Account *</Label>
+                                        <ReactSelect
+                                            options={dropdownAccountOptions}
+                                            value={dropdownAccountOptions.find(opt => opt.value === createLoanForm.data.destination_account_id) || null}
+                                            onChange={(opt) => createLoanForm.setData('destination_account_id', opt ? opt.value : '')}
+                                            styles={customReactSelectStyles}
+                                            placeholder="Select Receiving Account"
+                                            className="w-full"
+                                        />
+                                        {createLoanForm.errors.destination_account_id && <p className="text-xs text-destructive">{createLoanForm.errors.destination_account_id}</p>}
+                                    </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label>Loan Date *</Label>
-                                    <Input
-                                        type="date"
-                                        value={createLoanForm.data.loan_date}
-                                        onChange={(e) => createLoanForm.setData('loan_date', e.target.value)}
-                                    />
-                                    {createLoanForm.errors.loan_date && <p className="text-xs text-destructive">{createLoanForm.errors.loan_date}</p>}
+                                {/* Horizontal Row 2: Financials & Dates */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Original Loan Amount (PKR) *</Label>
+                                        <Input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="1000000"
+                                            value={createLoanForm.data.original_amount}
+                                            onChange={(e) => createLoanForm.setData('original_amount', e.target.value)}
+                                        />
+                                        {createLoanForm.errors.original_amount && <p className="text-xs text-destructive">{createLoanForm.errors.original_amount}</p>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Interest Rate (%)</Label>
+                                        <Input
+                                            type="number"
+                                            step="0.1"
+                                            placeholder="0"
+                                            value={createLoanForm.data.interest_rate}
+                                            onChange={(e) => createLoanForm.setData('interest_rate', e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Loan Start Date *</Label>
+                                        <Input
+                                            type="date"
+                                            value={createLoanForm.data.loan_date}
+                                            onChange={(e) => createLoanForm.setData('loan_date', e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Due Date (Optional)</Label>
+                                        <Input
+                                            type="date"
+                                            value={createLoanForm.data.due_date}
+                                            onChange={(e) => createLoanForm.setData('due_date', e.target.value)}
+                                        />
+                                    </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label>Interest Rate (%) (Optional)</Label>
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="0"
-                                        value={createLoanForm.data.interest_rate}
-                                        onChange={(e) => createLoanForm.setData('interest_rate', e.target.value)}
-                                    />
+                                {/* Horizontal Row 3: Purpose & Notes */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Purpose / Reason</Label>
+                                        <Input
+                                            placeholder="e.g. Office expansion / Working capital"
+                                            value={createLoanForm.data.purpose}
+                                            onChange={(e) => createLoanForm.setData('purpose', e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Additional Notes</Label>
+                                        <Input
+                                            placeholder="Any agreement details or remarks..."
+                                            value={createLoanForm.data.notes}
+                                            onChange={(e) => createLoanForm.setData('notes', e.target.value)}
+                                        />
+                                    </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label>Due Date (Optional)</Label>
-                                    <Input
-                                        type="date"
-                                        value={createLoanForm.data.due_date}
-                                        onChange={(e) => createLoanForm.setData('due_date', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Purpose / Reason</Label>
-                                <Input
-                                    placeholder="e.g. Office expansion / Working capital"
-                                    value={createLoanForm.data.purpose}
-                                    onChange={(e) => createLoanForm.setData('purpose', e.target.value)}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Attachment / Loan Agreement (Optional)</Label>
-                                    <Input
-                                        type="file"
-                                        accept="image/*,.pdf"
-                                        onChange={(e) => createLoanForm.setData('attachment', e.target.files ? e.target.files[0] : null)}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Attachment Display Name (Optional)</Label>
-                                    <Input
-                                        placeholder="e.g. Loan Agreement PDF"
-                                        value={createLoanForm.data.display_name || ''}
-                                        onChange={(e) => createLoanForm.setData('display_name', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Additional Notes</Label>
-                                <Input
-                                    placeholder="Any agreement details or remarks..."
-                                    value={createLoanForm.data.notes}
-                                    onChange={(e) => createLoanForm.setData('notes', e.target.value)}
+                                {/* Horizontal Row 4: Attachments */}
+                                <FileDropzone
+                                    file={createLoanForm.data.attachment}
+                                    onFileSelect={(file) => createLoanForm.setData('attachment', file)}
+                                    displayName={createLoanForm.data.display_name}
+                                    onDisplayNameChange={(val) => createLoanForm.setData('display_name', val)}
+                                    label="Attachment / Loan Agreement (Optional)"
+                                    description="Drag & drop loan document/agreement here, or click to browse"
                                 />
                             </div>
 
-                            <DialogFooter className="pt-4">
+                            <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsCreateLoanOpen(false)}>Cancel</Button>
                                 <Button type="submit" disabled={createLoanForm.processing}>
                                     {createLoanForm.processing ? 'Saving...' : 'Save Loan Record'}
@@ -649,7 +644,7 @@ export default function LoansIndex({ stats, loans, lenders, accounts, filters }:
 
                 {/* 2. RECORD REPAYMENT DIALOG */}
                 <Dialog open={!!selectedLoanForPayment} onOpenChange={(open) => !open && setSelectedLoanForPayment(null)}>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="max-w-4xl sm:max-w-4xl">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <PlusCircle className="size-5 text-emerald-600" />
@@ -661,107 +656,126 @@ export default function LoansIndex({ stats, loans, lenders, accounts, filters }:
                         </DialogHeader>
 
                         {selectedLoanForPayment && (
-                            <form onSubmit={handleRepaymentSubmit} className="space-y-4 py-2">
-                                <div className="rounded-lg bg-muted p-3 text-sm space-y-1">
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Original Loan:</span>
-                                        <span className="font-semibold">{formatCurrency(Number(selectedLoanForPayment.original_amount))}</span>
+                            <form onSubmit={handleRepaymentSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                                <div className="flex-1 overflow-y-auto p-6">
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* Left Column: Input Form Fields */}
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label>Repayment Amount (PKR) *</Label>
+                                                    <Input
+                                                        type="number"
+                                                        step="0.01"
+                                                        max={selectedLoanForPayment.remaining_balance}
+                                                        value={repaymentForm.data.amount}
+                                                        onChange={(e) => repaymentForm.setData('amount', e.target.value)}
+                                                        required
+                                                    />
+                                                    {repaymentForm.errors.amount && <p className="text-xs text-destructive">{repaymentForm.errors.amount}</p>}
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label>Payment Date *</Label>
+                                                    <Input
+                                                        type="date"
+                                                        value={repaymentForm.data.payment_date}
+                                                        onChange={(e) => repaymentForm.setData('payment_date', e.target.value)}
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label>Payment Method *</Label>
+                                                    <Select
+                                                        value={repaymentForm.data.payment_method}
+                                                        onValueChange={(val: any) => repaymentForm.setData('payment_method', val)}
+                                                    >
+                                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                                                            <SelectItem value="cash">Cash</SelectItem>
+                                                            <SelectItem value="cheque">Cheque</SelectItem>
+                                                            <SelectItem value="other">Other</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label>Paying Cash/Bank Account *</Label>
+                                                    <Select
+                                                        value={repaymentForm.data.account_id}
+                                                        onValueChange={(val) => repaymentForm.setData('account_id', val)}
+                                                    >
+                                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                                        <SelectContent>
+                                                            {accounts.map((acc) => (
+                                                                <SelectItem key={acc.id} value={String(acc.id)}>
+                                                                    {acc.name} ({formatCurrency(acc.current_balance)})
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label>Transaction Reference / Cheque #</Label>
+                                                <Input
+                                                    placeholder="e.g. TRX-998823"
+                                                    value={repaymentForm.data.transaction_reference}
+                                                    onChange={(e) => repaymentForm.setData('transaction_reference', e.target.value)}
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label>Notes / Remarks</Label>
+                                                <Input
+                                                    placeholder="Optional payment notes..."
+                                                    value={repaymentForm.data.notes}
+                                                    onChange={(e) => repaymentForm.setData('notes', e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Right Column: Loan Summary & Attachment */}
+                                        <div className="space-y-4">
+                                            <div className="rounded-xl border bg-muted/40 p-4 shadow-sm space-y-2.5">
+                                                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider border-b pb-1">
+                                                    Loan Balance Summary
+                                                </div>
+                                                <div className="flex justify-between text-xs">
+                                                    <span className="text-muted-foreground">Original Loan Amount:</span>
+                                                    <span className="font-semibold font-mono text-foreground">{formatCurrency(Number(selectedLoanForPayment.original_amount))}</span>
+                                                </div>
+                                                <div className="flex justify-between text-xs">
+                                                    <span className="text-muted-foreground">Total Repaid to Date:</span>
+                                                    <span className="font-semibold font-mono text-emerald-600 dark:text-emerald-400">{formatCurrency(selectedLoanForPayment.total_repaid)}</span>
+                                                </div>
+                                                <div className="flex justify-between text-sm border-t pt-2 border-border font-bold">
+                                                    <span className="text-foreground">Outstanding Balance:</span>
+                                                    <span className="font-mono text-indigo-600 dark:text-indigo-400">{formatCurrency(selectedLoanForPayment.remaining_balance)}</span>
+                                                </div>
+                                            </div>
+
+                                            <FileDropzone
+                                                file={repaymentForm.data.attachment}
+                                                onFileSelect={(file) => repaymentForm.setData('attachment', file)}
+                                                displayName={repaymentForm.data.display_name}
+                                                onDisplayNameChange={(val) => repaymentForm.setData('display_name', val)}
+                                                label="Attachment / Bank Receipt (Optional)"
+                                                description="Drag & drop payment receipt or slip here, or click to browse"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Total Repaid:</span>
-                                        <span className="font-semibold text-emerald-600">{formatCurrency(selectedLoanForPayment.total_repaid)}</span>
-                                    </div>
-                                    <div className="flex justify-between border-t pt-1 border-border">
-                                        <span className="text-foreground font-medium">Outstanding Balance:</span>
-                                        <span className="font-bold text-foreground">{formatCurrency(selectedLoanForPayment.remaining_balance)}</span>
-                                    </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label>Repayment Amount (PKR) *</Label>
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        max={selectedLoanForPayment.remaining_balance}
-                                        value={repaymentForm.data.amount}
-                                        onChange={(e) => repaymentForm.setData('amount', e.target.value)}
-                                    />
-                                    {repaymentForm.errors.amount && <p className="text-xs text-destructive">{repaymentForm.errors.amount}</p>}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Payment Method *</Label>
-                                    <Select
-                                        value={repaymentForm.data.payment_method}
-                                        onValueChange={(val: any) => repaymentForm.setData('payment_method', val)}
-                                    >
-                                        <SelectTrigger><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                                            <SelectItem value="cash">Cash</SelectItem>
-                                            <SelectItem value="cheque">Cheque</SelectItem>
-                                            <SelectItem value="other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Paying Cash/Bank Account *</Label>
-                                    <Select
-                                        value={repaymentForm.data.account_id}
-                                        onValueChange={(val) => repaymentForm.setData('account_id', val)}
-                                    >
-                                        <SelectTrigger><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            {accounts.map((acc) => (
-                                                <SelectItem key={acc.id} value={String(acc.id)}>
-                                                    {acc.name} ({formatCurrency(acc.current_balance)})
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Payment Date *</Label>
-                                    <Input
-                                        type="date"
-                                        value={repaymentForm.data.payment_date}
-                                        onChange={(e) => repaymentForm.setData('payment_date', e.target.value)}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Transaction Reference / Cheque #</Label>
-                                    <Input
-                                        placeholder="e.g. TRX-998823"
-                                        value={repaymentForm.data.transaction_reference}
-                                        onChange={(e) => repaymentForm.setData('transaction_reference', e.target.value)}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Attachment / Receipt (Optional)</Label>
-                                    <Input
-                                        type="file"
-                                        accept="image/*,.pdf"
-                                        onChange={(e) => repaymentForm.setData('attachment', e.target.files ? e.target.files[0] : null)}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Attachment Display Name (Optional)</Label>
-                                    <Input
-                                        placeholder="e.g. Repayment Bank Slip PDF"
-                                        value={repaymentForm.data.display_name || ''}
-                                        onChange={(e) => repaymentForm.setData('display_name', e.target.value)}
-                                    />
-                                </div>
-
-                                <DialogFooter className="pt-4">
+                                <DialogFooter>
                                     <Button type="button" variant="outline" onClick={() => setSelectedLoanForPayment(null)}>Cancel</Button>
-                                    <Button type="submit" disabled={repaymentForm.processing} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                                        {repaymentForm.processing ? 'Processing...' : 'Confirm Repayment'}
+                                    <Button type="submit" disabled={repaymentForm.processing} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6">
+                                        {repaymentForm.processing ? 'Saving...' : 'Save Repayment'}
                                     </Button>
                                 </DialogFooter>
                             </form>

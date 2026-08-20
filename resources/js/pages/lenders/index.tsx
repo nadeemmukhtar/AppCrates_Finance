@@ -38,6 +38,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import FileDropzone from '@/components/file-dropzone';
 import type { FinancialAccount, Lender, LenderType, LoanStats } from '@/types/loans';
 
 interface Props {
@@ -159,6 +160,8 @@ export default function LendersIndex({ stats, lenders, allLenders = [], accounts
         purpose: '',
         notes: '',
         destination_account_id: accounts.length > 0 ? String(accounts[0].id) : '',
+        attachment: null as File | null,
+        display_name: '',
     });
 
     // Delete Form
@@ -537,60 +540,67 @@ export default function LendersIndex({ stats, lenders, allLenders = [], accounts
 
                 {/* 1. ADD LENDER MODAL */}
                 <Dialog open={isCreateLenderModalOpen} onOpenChange={setIsCreateLenderModalOpen}>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="max-w-3xl sm:max-w-3xl">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <UserPlus className="size-5" />
-                                Add Lender
+                                Add New Lender
                             </DialogTitle>
-                            <DialogDescription>Record a new individual, company, or bank as a lender.</DialogDescription>
+                            <DialogDescription>
+                                Add an individual, company, or financial institution to record loans from.
+                            </DialogDescription>
                         </DialogHeader>
 
-                        <form onSubmit={handleCreateLenderSubmit} className="space-y-4 py-2">
-                            <div className="space-y-2">
-                                <Label>Lender Name *</Label>
-                                <Input
-                                    placeholder="e.g. Habib Bank Ltd / Sheikh Investor"
-                                    value={createLenderForm.data.name}
-                                    onChange={(e) => createLenderForm.setData('name', e.target.value)}
-                                />
-                                {createLenderForm.errors.name && <p className="text-xs text-destructive">{createLenderForm.errors.name}</p>}
+                        <form onSubmit={handleCreateLenderSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Lender Name *</Label>
+                                        <Input
+                                            placeholder="e.g. Habib Bank Ltd / Sheikh Investor"
+                                            value={createLenderForm.data.name}
+                                            onChange={(e) => createLenderForm.setData('name', e.target.value)}
+                                        />
+                                        {createLenderForm.errors.name && <p className="text-xs text-destructive">{createLenderForm.errors.name}</p>}
+                                    </div>
+
+                                    <div className="space-y-2 w-full">
+                                        <Label>Lender Type *</Label>
+                                        <Select
+                                            options={lenderTypeOptions}
+                                            value={lenderTypeOptions.find(opt => opt.value === createLenderForm.data.type) || null}
+                                            onChange={(opt) => createLenderForm.setData('type', opt ? opt.value : 'individual')}
+                                            styles={customReactSelectStyles}
+                                            className="w-full"
+                                            placeholder="Select Lender Type"
+                                        />
+                                        {createLenderForm.errors.type && <p className="text-xs text-destructive">{createLenderForm.errors.type}</p>}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Phone</Label>
+                                        <Input
+                                            placeholder="+92 300 1234567"
+                                            value={createLenderForm.data.phone}
+                                            onChange={(e) => createLenderForm.setData('phone', e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Email</Label>
+                                        <Input
+                                            type="email"
+                                            placeholder="contact@lender.com"
+                                            value={createLenderForm.data.email}
+                                            onChange={(e) => createLenderForm.setData('email', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Full Width React-Select for Lender Type */}
-                            <div className="space-y-2 w-full">
-                                <Label>Lender Type *</Label>
-                                <Select
-                                    options={lenderTypeOptions}
-                                    value={lenderTypeOptions.find(opt => opt.value === createLenderForm.data.type) || null}
-                                    onChange={(opt) => createLenderForm.setData('type', opt ? opt.value : 'individual')}
-                                    styles={customReactSelectStyles}
-                                    className="w-full"
-                                    placeholder="Select Lender Type"
-                                />
-                                {createLenderForm.errors.type && <p className="text-xs text-destructive">{createLenderForm.errors.type}</p>}
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Phone</Label>
-                                <Input
-                                    placeholder="+92 300 1234567"
-                                    value={createLenderForm.data.phone}
-                                    onChange={(e) => createLenderForm.setData('phone', e.target.value)}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Email</Label>
-                                <Input
-                                    type="email"
-                                    placeholder="contact@lender.com"
-                                    value={createLenderForm.data.email}
-                                    onChange={(e) => createLenderForm.setData('email', e.target.value)}
-                                />
-                            </div>
-
-                            <DialogFooter className="pt-4">
+                            <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsCreateLenderModalOpen(false)}>Cancel</Button>
                                 <Button type="submit" disabled={createLenderForm.processing}>
                                     Save Lender
@@ -602,7 +612,7 @@ export default function LendersIndex({ stats, lenders, allLenders = [], accounts
 
                 {/* 2. RECORD NEW LOAN MODAL */}
                 <Dialog open={isCreateLoanModalOpen} onOpenChange={setIsCreateLoanModalOpen}>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-4xl sm:max-w-4xl">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <HandCoins className="size-5" />
@@ -613,99 +623,115 @@ export default function LendersIndex({ stats, lenders, allLenders = [], accounts
                             </DialogDescription>
                         </DialogHeader>
 
-                        <form onSubmit={handleCreateLoanSubmit} className="space-y-4 py-2">
-                            {/* Row 1: Lender (Full Width) */}
-                            <div className="space-y-2 w-full">
-                                <Label>Lender *</Label>
-                                <Select
-                                    options={dropdownLenderOptions}
-                                    value={dropdownLenderOptions.find(opt => opt.value === createLoanForm.data.lender_id) || null}
-                                    onChange={(opt) => createLoanForm.setData('lender_id', opt ? opt.value : '')}
-                                    styles={customReactSelectStyles}
-                                    placeholder="Select Lender"
-                                    className="w-full"
-                                />
-                                {createLoanForm.errors.lender_id && <p className="text-xs text-destructive">{createLoanForm.errors.lender_id}</p>}
-                            </div>
+                        <form onSubmit={handleCreateLoanSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                {/* Horizontal Row 1: Lender & Account */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Lender *</Label>
+                                        <Select
+                                            options={dropdownLenderOptions}
+                                            value={dropdownLenderOptions.find(opt => opt.value === createLoanForm.data.lender_id) || null}
+                                            onChange={(opt) => createLoanForm.setData('lender_id', opt ? opt.value : '')}
+                                            styles={customReactSelectStyles}
+                                            placeholder="Select Lender"
+                                            className="w-full"
+                                        />
+                                        {createLoanForm.errors.lender_id && <p className="text-xs text-destructive">{createLoanForm.errors.lender_id}</p>}
+                                    </div>
 
-                            {/* Row 2: Receiving Cash/Bank Account (Full Width) */}
-                            <div className="space-y-2 w-full">
-                                <Label>Receiving Cash/Bank Account *</Label>
-                                <Select
-                                    options={dropdownAccountOptions}
-                                    value={dropdownAccountOptions.find(opt => opt.value === createLoanForm.data.destination_account_id) || null}
-                                    onChange={(opt) => createLoanForm.setData('destination_account_id', opt ? opt.value : '')}
-                                    styles={customReactSelectStyles}
-                                    placeholder="Select Receiving Account"
-                                    className="w-full"
-                                />
-                                {createLoanForm.errors.destination_account_id && <p className="text-xs text-destructive">{createLoanForm.errors.destination_account_id}</p>}
-                            </div>
-
-                            {/* Row 3 onwards: 2 Column Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Original Loan Amount (PKR) *</Label>
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="500000"
-                                        value={createLoanForm.data.original_amount}
-                                        onChange={(e) => createLoanForm.setData('original_amount', e.target.value)}
-                                    />
-                                    {createLoanForm.errors.original_amount && <p className="text-xs text-destructive">{createLoanForm.errors.original_amount}</p>}
+                                    <div className="space-y-2">
+                                        <Label>Receiving Cash/Bank Account *</Label>
+                                        <Select
+                                            options={dropdownAccountOptions}
+                                            value={dropdownAccountOptions.find(opt => opt.value === createLoanForm.data.destination_account_id) || null}
+                                            onChange={(opt) => createLoanForm.setData('destination_account_id', opt ? opt.value : '')}
+                                            styles={customReactSelectStyles}
+                                            placeholder="Select Receiving Account"
+                                            className="w-full"
+                                        />
+                                        {createLoanForm.errors.destination_account_id && <p className="text-xs text-destructive">{createLoanForm.errors.destination_account_id}</p>}
+                                    </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label>Loan Date *</Label>
-                                    <Input
-                                        type="date"
-                                        value={createLoanForm.data.loan_date}
-                                        onChange={(e) => createLoanForm.setData('loan_date', e.target.value)}
-                                    />
-                                    {createLoanForm.errors.loan_date && <p className="text-xs text-destructive">{createLoanForm.errors.loan_date}</p>}
+                                {/* Horizontal Row 2: Financials & Dates */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Original Loan Amount (PKR) *</Label>
+                                        <Input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="500000"
+                                            value={createLoanForm.data.original_amount}
+                                            onChange={(e) => createLoanForm.setData('original_amount', e.target.value)}
+                                        />
+                                        {createLoanForm.errors.original_amount && <p className="text-xs text-destructive">{createLoanForm.errors.original_amount}</p>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Loan Date *</Label>
+                                        <Input
+                                            type="date"
+                                            value={createLoanForm.data.loan_date}
+                                            onChange={(e) => createLoanForm.setData('loan_date', e.target.value)}
+                                        />
+                                        {createLoanForm.errors.loan_date && <p className="text-xs text-destructive">{createLoanForm.errors.loan_date}</p>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Interest Rate (%) (Optional)</Label>
+                                        <Input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="0"
+                                            value={createLoanForm.data.interest_rate}
+                                            onChange={(e) => createLoanForm.setData('interest_rate', e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Due Date (Optional)</Label>
+                                        <Input
+                                            type="date"
+                                            value={createLoanForm.data.due_date}
+                                            onChange={(e) => createLoanForm.setData('due_date', e.target.value)}
+                                        />
+                                    </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label>Interest Rate (%) (Optional)</Label>
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="0"
-                                        value={createLoanForm.data.interest_rate}
-                                        onChange={(e) => createLoanForm.setData('interest_rate', e.target.value)}
-                                    />
+                                {/* Horizontal Row 3: Purpose & Notes */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Purpose / Reason</Label>
+                                        <Input
+                                            placeholder="e.g. Office expansion / Working capital"
+                                            value={createLoanForm.data.purpose}
+                                            onChange={(e) => createLoanForm.setData('purpose', e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Additional Notes</Label>
+                                        <Input
+                                            placeholder="Any agreement details or remarks..."
+                                            value={createLoanForm.data.notes}
+                                            onChange={(e) => createLoanForm.setData('notes', e.target.value)}
+                                        />
+                                    </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label>Due Date (Optional)</Label>
-                                    <Input
-                                        type="date"
-                                        value={createLoanForm.data.due_date}
-                                        onChange={(e) => createLoanForm.setData('due_date', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Purpose / Reason</Label>
-                                <Input
-                                    placeholder="e.g. Office expansion / Working capital"
-                                    value={createLoanForm.data.purpose}
-                                    onChange={(e) => createLoanForm.setData('purpose', e.target.value)}
+                                {/* Horizontal Row 4: Attachments */}
+                                <FileDropzone
+                                    file={createLoanForm.data.attachment}
+                                    onFileSelect={(file) => createLoanForm.setData('attachment', file)}
+                                    displayName={createLoanForm.data.display_name}
+                                    onDisplayNameChange={(val) => createLoanForm.setData('display_name', val)}
+                                    label="Attachment / Loan Agreement (Optional)"
+                                    description="Drag & drop loan document/agreement here, or click to browse"
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Additional Notes</Label>
-                                <Input
-                                    placeholder="Any agreement details or remarks..."
-                                    value={createLoanForm.data.notes}
-                                    onChange={(e) => createLoanForm.setData('notes', e.target.value)}
-                                />
-                            </div>
-
-                            <DialogFooter className="pt-4">
+                            <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsCreateLoanModalOpen(false)}>Cancel</Button>
                                 <Button type="submit" disabled={createLoanForm.processing}>
                                     {createLoanForm.processing ? 'Saving...' : 'Save Loan Record'}
@@ -717,7 +743,7 @@ export default function LendersIndex({ stats, lenders, allLenders = [], accounts
 
                 {/* 3. EDIT LENDER MODAL */}
                 <Dialog open={!!editingLender} onOpenChange={(open) => !open && setEditingLender(null)}>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="max-w-3xl sm:max-w-3xl">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <Edit className="size-5" />
@@ -727,51 +753,56 @@ export default function LendersIndex({ stats, lenders, allLenders = [], accounts
                         </DialogHeader>
 
                         {editingLender && (
-                            <form onSubmit={handleEditLenderSubmit} className="space-y-4 py-2">
-                                <div className="space-y-2">
-                                    <Label>Lender Name *</Label>
-                                    <Input
-                                        value={editLenderForm.data.name}
-                                        onChange={(e) => editLenderForm.setData('name', e.target.value)}
-                                    />
-                                    {editLenderForm.errors.name && <p className="text-xs text-destructive">{editLenderForm.errors.name}</p>}
+                            <form onSubmit={handleEditLenderSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Lender Name *</Label>
+                                            <Input
+                                                value={editLenderForm.data.name}
+                                                onChange={(e) => editLenderForm.setData('name', e.target.value)}
+                                            />
+                                            {editLenderForm.errors.name && <p className="text-xs text-destructive">{editLenderForm.errors.name}</p>}
+                                        </div>
+
+                                        <div className="space-y-2 w-full">
+                                            <Label>Lender Type *</Label>
+                                            <Select
+                                                options={lenderTypeOptions}
+                                                value={lenderTypeOptions.find(opt => opt.value === editLenderForm.data.type) || null}
+                                                onChange={(opt) => editLenderForm.setData('type', opt ? opt.value : 'individual')}
+                                                styles={customReactSelectStyles}
+                                                className="w-full"
+                                                placeholder="Select Lender Type"
+                                            />
+                                            {editLenderForm.errors.type && <p className="text-xs text-destructive">{editLenderForm.errors.type}</p>}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Phone</Label>
+                                            <Input
+                                                value={editLenderForm.data.phone}
+                                                onChange={(e) => editLenderForm.setData('phone', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Email</Label>
+                                            <Input
+                                                type="email"
+                                                value={editLenderForm.data.email}
+                                                onChange={(e) => editLenderForm.setData('email', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {/* Full Width React-Select for Lender Type */}
-                                <div className="space-y-2 w-full">
-                                    <Label>Lender Type *</Label>
-                                    <Select
-                                        options={lenderTypeOptions}
-                                        value={lenderTypeOptions.find(opt => opt.value === editLenderForm.data.type) || null}
-                                        onChange={(opt) => editLenderForm.setData('type', opt ? opt.value : 'individual')}
-                                        styles={customReactSelectStyles}
-                                        className="w-full"
-                                        placeholder="Select Lender Type"
-                                    />
-                                    {editLenderForm.errors.type && <p className="text-xs text-destructive">{editLenderForm.errors.type}</p>}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Phone</Label>
-                                    <Input
-                                        value={editLenderForm.data.phone}
-                                        onChange={(e) => editLenderForm.setData('phone', e.target.value)}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Email</Label>
-                                    <Input
-                                        type="email"
-                                        value={editLenderForm.data.email}
-                                        onChange={(e) => editLenderForm.setData('email', e.target.value)}
-                                    />
-                                </div>
-
-                                <DialogFooter className="pt-4">
+                                <DialogFooter>
                                     <Button type="button" variant="outline" onClick={() => setEditingLender(null)}>Cancel</Button>
                                     <Button type="submit" disabled={editLenderForm.processing}>
-                                        Update Lender
+                                        Save Changes
                                     </Button>
                                 </DialogFooter>
                             </form>

@@ -477,7 +477,7 @@ export default function AccountsIndex({ stats, accounts, filters }: Props) {
 
                 {/* 1. ADD ACCOUNT MODAL */}
                 <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="max-w-3xl sm:max-w-3xl">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <Landmark className="size-5" />
@@ -486,59 +486,65 @@ export default function AccountsIndex({ stats, accounts, filters }: Props) {
                             <DialogDescription>Create a new bank account or cash box for tracking company liquidity.</DialogDescription>
                         </DialogHeader>
 
-                        <form onSubmit={handleCreateSubmit} className="space-y-4 py-2">
-                            <div className="space-y-2">
-                                <Label>Account Name *</Label>
-                                <Input
-                                    placeholder="e.g. HBL Operational Account / Main Cash Box"
-                                    value={createForm.data.name}
-                                    onChange={(e) => createForm.setData('name', e.target.value)}
-                                />
-                                {createForm.errors.name && <p className="text-xs text-destructive">{createForm.errors.name}</p>}
+                        <form onSubmit={handleCreateSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Account Name *</Label>
+                                        <Input
+                                            placeholder="e.g. HBL Operational Account / Main Cash Box"
+                                            value={createForm.data.name}
+                                            onChange={(e) => createForm.setData('name', e.target.value)}
+                                        />
+                                        {createForm.errors.name && <p className="text-xs text-destructive">{createForm.errors.name}</p>}
+                                    </div>
+
+                                    <div className="space-y-2 w-full">
+                                        <Label>Account Type *</Label>
+                                        <ReactSelect
+                                            options={accountTypeOptions}
+                                            value={accountTypeOptions.find(opt => opt.value === createForm.data.type) || null}
+                                            onChange={(opt) => createForm.setData('type', opt ? (opt.value as any) : 'bank')}
+                                            styles={customReactSelectStyles}
+                                            className="w-full"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Bank / Institution Name</Label>
+                                        <Input
+                                            placeholder="e.g. Habib Bank Limited"
+                                            value={createForm.data.bank_name}
+                                            onChange={(e) => createForm.setData('bank_name', e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Account Number / IBAN</Label>
+                                        <Input
+                                            placeholder="e.g. PK12HABB00012345678901"
+                                            value={createForm.data.account_number}
+                                            onChange={(e) => createForm.setData('account_number', e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Opening Balance (PKR) *</Label>
+                                        <Input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="0.00"
+                                            value={createForm.data.opening_balance}
+                                            onChange={(e) => createForm.setData('opening_balance', e.target.value)}
+                                        />
+                                        {createForm.errors.opening_balance && <p className="text-xs text-destructive">{createForm.errors.opening_balance}</p>}
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="space-y-2 w-full">
-                                <Label>Account Type *</Label>
-                                <ReactSelect
-                                    options={accountTypeOptions}
-                                    value={accountTypeOptions.find(opt => opt.value === createForm.data.type) || null}
-                                    onChange={(opt) => createForm.setData('type', opt ? (opt.value as any) : 'bank')}
-                                    styles={customReactSelectStyles}
-                                    className="w-full"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Bank / Institution Name</Label>
-                                <Input
-                                    placeholder="e.g. Habib Bank Limited"
-                                    value={createForm.data.bank_name}
-                                    onChange={(e) => createForm.setData('bank_name', e.target.value)}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Account Number / IBAN</Label>
-                                <Input
-                                    placeholder="e.g. PK12HABB00012345678901"
-                                    value={createForm.data.account_number}
-                                    onChange={(e) => createForm.setData('account_number', e.target.value)}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Opening Balance (PKR) *</Label>
-                                <Input
-                                    type="number"
-                                    step="0.01"
-                                    placeholder="0.00"
-                                    value={createForm.data.opening_balance}
-                                    onChange={(e) => createForm.setData('opening_balance', e.target.value)}
-                                />
-                                {createForm.errors.opening_balance && <p className="text-xs text-destructive">{createForm.errors.opening_balance}</p>}
-                            </div>
-
-                            <DialogFooter className="pt-4">
+                            <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
                                 <Button type="submit" disabled={createForm.processing}>
                                     Save Account
@@ -550,7 +556,7 @@ export default function AccountsIndex({ stats, accounts, filters }: Props) {
 
                 {/* 2. EDIT ACCOUNT MODAL */}
                 <Dialog open={!!editingAccount} onOpenChange={(open) => !open && setEditingAccount(null)}>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="max-w-3xl sm:max-w-3xl">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <Edit className="size-5" />
@@ -560,44 +566,50 @@ export default function AccountsIndex({ stats, accounts, filters }: Props) {
                         </DialogHeader>
 
                         {editingAccount && (
-                            <form onSubmit={handleEditSubmit} className="space-y-4 py-2">
-                                <div className="space-y-2">
-                                    <Label>Account Name *</Label>
-                                    <Input
-                                        value={editForm.data.name}
-                                        onChange={(e) => editForm.setData('name', e.target.value)}
-                                    />
-                                    {editForm.errors.name && <p className="text-xs text-destructive">{editForm.errors.name}</p>}
+                            <form onSubmit={handleEditSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Account Name *</Label>
+                                            <Input
+                                                value={editForm.data.name}
+                                                onChange={(e) => editForm.setData('name', e.target.value)}
+                                            />
+                                            {editForm.errors.name && <p className="text-xs text-destructive">{editForm.errors.name}</p>}
+                                        </div>
+
+                                        <div className="space-y-2 w-full">
+                                            <Label>Account Type *</Label>
+                                            <ReactSelect
+                                                options={accountTypeOptions}
+                                                value={accountTypeOptions.find(opt => opt.value === editForm.data.type) || null}
+                                                onChange={(opt) => editForm.setData('type', opt ? (opt.value as any) : 'bank')}
+                                                styles={customReactSelectStyles}
+                                                className="w-full"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Bank / Institution Name</Label>
+                                            <Input
+                                                value={editForm.data.bank_name}
+                                                onChange={(e) => editForm.setData('bank_name', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Account Number / IBAN</Label>
+                                            <Input
+                                                value={editForm.data.account_number}
+                                                onChange={(e) => editForm.setData('account_number', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="space-y-2 w-full">
-                                    <Label>Account Type *</Label>
-                                    <ReactSelect
-                                        options={accountTypeOptions}
-                                        value={accountTypeOptions.find(opt => opt.value === editForm.data.type) || null}
-                                        onChange={(opt) => editForm.setData('type', opt ? (opt.value as any) : 'bank')}
-                                        styles={customReactSelectStyles}
-                                        className="w-full"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Bank / Institution Name</Label>
-                                    <Input
-                                        value={editForm.data.bank_name}
-                                        onChange={(e) => editForm.setData('bank_name', e.target.value)}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Account Number / IBAN</Label>
-                                    <Input
-                                        value={editForm.data.account_number}
-                                        onChange={(e) => editForm.setData('account_number', e.target.value)}
-                                    />
-                                </div>
-
-                                <DialogFooter className="pt-4">
+                                <DialogFooter>
                                     <Button type="button" variant="outline" onClick={() => setEditingAccount(null)}>Cancel</Button>
                                     <Button type="submit" disabled={editForm.processing}>
                                         Update Account

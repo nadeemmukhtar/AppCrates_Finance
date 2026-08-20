@@ -545,7 +545,7 @@ export default function EmployeesIndex({ stats, employees, accounts, filters }: 
                 {/* 5. ADD EMPLOYEE MODAL (HORIZONTAL MULTI-COLUMN LAYOUT) */}
                 <Dialog open={isCreateModalOpen} onOpenChange={(open) => !open && setIsCreateModalOpen(false)}>
                     <DialogContent className="max-w-4xl sm:max-w-4xl">
-                        <DialogHeader className="border-b pb-3">
+                        <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <UserPlus className="size-5 text-indigo-600 dark:text-indigo-400" />
                                 Add New Employee
@@ -553,128 +553,130 @@ export default function EmployeesIndex({ stats, employees, accounts, filters }: 
                             <DialogDescription>Register a new company employee and configure initial salary structure.</DialogDescription>
                         </DialogHeader>
 
-                        <form onSubmit={handleCreateSubmit} className="space-y-5 pt-2">
-                            {/* Section 1: Basic Information */}
-                            <div className="space-y-3">
-                                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">
-                                    1. Basic Information
+                        <form onSubmit={handleCreateSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                {/* Section 1: Basic Information */}
+                                <div className="space-y-3">
+                                    <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">
+                                        1. Basic Information
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Full Name <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                placeholder="e.g. Ahmed Khan"
+                                                value={createForm.data.full_name}
+                                                onChange={(e) => createForm.setData('full_name', e.target.value)}
+                                                required
+                                            />
+                                            {createForm.errors.full_name && <p className="text-xs text-destructive">{createForm.errors.full_name}</p>}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Email Address</Label>
+                                            <Input
+                                                type="email"
+                                                placeholder="ahmed@company.com"
+                                                value={createForm.data.email}
+                                                onChange={(e) => createForm.setData('email', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Phone Number</Label>
+                                            <Input
+                                                placeholder="03001234567"
+                                                value={createForm.data.phone}
+                                                onChange={(e) => createForm.setData('phone', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Joining Date <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                type="date"
+                                                value={createForm.data.joining_date}
+                                                onChange={(e) => createForm.setData('joining_date', e.target.value)}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Status</Label>
+                                            <ReactSelect
+                                                options={[
+                                                    { value: 'active', label: 'Active' },
+                                                    { value: 'inactive', label: 'Inactive' },
+                                                ]}
+                                                value={[
+                                                    { value: 'active', label: 'Active' },
+                                                    { value: 'inactive', label: 'Inactive' },
+                                                ].find(o => o.value === createForm.data.status) || null}
+                                                onChange={(opt) => createForm.setData('status', opt ? (opt.value as any) : 'active')}
+                                                styles={customReactSelectStyles}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Full Name <span className="text-destructive">*</span></Label>
-                                        <Input
-                                            placeholder="e.g. Ahmed Khan"
-                                            value={createForm.data.full_name}
-                                            onChange={(e) => createForm.setData('full_name', e.target.value)}
-                                            required
-                                        />
-                                        {createForm.errors.full_name && <p className="text-xs text-destructive">{createForm.errors.full_name}</p>}
+
+                                {/* Section 2: Salary Structure */}
+                                <div className="space-y-3">
+                                    <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">
+                                        2. Salary Structure Setup
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Basic Salary (PKR) <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="100000"
+                                                value={createForm.data.basic_salary}
+                                                onChange={(e) => createForm.setData('basic_salary', e.target.value)}
+                                                required
+                                            />
+                                            {createForm.errors.basic_salary && <p className="text-xs text-destructive">{createForm.errors.basic_salary}</p>}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Allowances (PKR)</Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="10000"
+                                                value={createForm.data.allowances}
+                                                onChange={(e) => createForm.setData('allowances', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Deductions (PKR)</Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="5000"
+                                                value={createForm.data.deductions}
+                                                onChange={(e) => createForm.setData('deductions', e.target.value)}
+                                            />
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label>Email Address</Label>
-                                        <Input
-                                            type="email"
-                                            placeholder="ahmed@company.com"
-                                            value={createForm.data.email}
-                                            onChange={(e) => createForm.setData('email', e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Phone Number</Label>
-                                        <Input
-                                            placeholder="03001234567"
-                                            value={createForm.data.phone}
-                                            onChange={(e) => createForm.setData('phone', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Joining Date <span className="text-destructive">*</span></Label>
-                                        <Input
-                                            type="date"
-                                            value={createForm.data.joining_date}
-                                            onChange={(e) => createForm.setData('joining_date', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Status</Label>
-                                        <ReactSelect
-                                            options={[
-                                                { value: 'active', label: 'Active' },
-                                                { value: 'inactive', label: 'Inactive' },
-                                            ]}
-                                            value={[
-                                                { value: 'active', label: 'Active' },
-                                                { value: 'inactive', label: 'Inactive' },
-                                            ].find(o => o.value === createForm.data.status) || null}
-                                            onChange={(opt) => createForm.setData('status', opt ? (opt.value as any) : 'active')}
-                                            styles={customReactSelectStyles}
-                                        />
+                                    {/* Net Salary Calculation Preview */}
+                                    <div className="rounded-lg bg-indigo-50 dark:bg-indigo-950/40 p-4 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-between">
+                                        <div>
+                                            <div className="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">Auto Calculated Net Salary</div>
+                                            <div className="text-xs text-indigo-600/80 dark:text-indigo-400 mt-0.5">Basic + Allowances - Deductions</div>
+                                        </div>
+                                        <div className="text-2xl font-extrabold font-mono text-indigo-700 dark:text-indigo-300">
+                                            {formatCurrency(calculatedNetSalary)}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Section 2: Salary Structure */}
-                            <div className="space-y-3">
-                                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">
-                                    2. Salary Structure Setup
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Basic Salary (PKR) <span className="text-destructive">*</span></Label>
-                                        <Input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="100000"
-                                            value={createForm.data.basic_salary}
-                                            onChange={(e) => createForm.setData('basic_salary', e.target.value)}
-                                            required
-                                        />
-                                        {createForm.errors.basic_salary && <p className="text-xs text-destructive">{createForm.errors.basic_salary}</p>}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Allowances (PKR)</Label>
-                                        <Input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="10000"
-                                            value={createForm.data.allowances}
-                                            onChange={(e) => createForm.setData('allowances', e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Deductions (PKR)</Label>
-                                        <Input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="5000"
-                                            value={createForm.data.deductions}
-                                            onChange={(e) => createForm.setData('deductions', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Net Salary Calculation Preview */}
-                                <div className="rounded-lg bg-indigo-50 dark:bg-indigo-950/40 p-4 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-between">
-                                    <div>
-                                        <div className="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">Auto Calculated Net Salary</div>
-                                        <div className="text-xs text-indigo-600/80 dark:text-indigo-400 mt-0.5">Basic + Allowances - Deductions</div>
-                                    </div>
-                                    <div className="text-2xl font-extrabold font-mono text-indigo-700 dark:text-indigo-300">
-                                        {formatCurrency(calculatedNetSalary)}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <DialogFooter className="border-t pt-4 mt-4">
+                            <DialogFooter>
                                 <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
                                 <Button type="submit" disabled={createForm.processing} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6">
                                     Create Employee Record
@@ -686,8 +688,8 @@ export default function EmployeesIndex({ stats, employees, accounts, filters }: 
 
                 {/* 6. EDIT EMPLOYEE MODAL */}
                 <Dialog open={!!editingEmployee} onOpenChange={(open) => !open && setEditingEmployee(null)}>
-                    <DialogContent className="max-w-lg">
-                        <DialogHeader className="border-b pb-3">
+                    <DialogContent className="max-w-3xl sm:max-w-3xl">
+                        <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <Edit className="size-5 text-indigo-600 dark:text-indigo-400" />
                                 Edit Employee ({editingEmployee?.employee_id})
@@ -696,65 +698,67 @@ export default function EmployeesIndex({ stats, employees, accounts, filters }: 
                         </DialogHeader>
 
                         {editingEmployee && (
-                            <form onSubmit={handleEditSubmit} className="space-y-4 pt-2">
-                                <div className="space-y-2">
-                                    <Label>Full Name <span className="text-destructive">*</span></Label>
-                                    <Input
-                                        value={editForm.data.full_name}
-                                        onChange={(e) => editForm.setData('full_name', e.target.value)}
-                                        required
-                                    />
-                                    {editForm.errors.full_name && <p className="text-xs text-destructive">{editForm.errors.full_name}</p>}
+                            <form onSubmit={handleEditSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Full Name <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                value={editForm.data.full_name}
+                                                onChange={(e) => editForm.setData('full_name', e.target.value)}
+                                                required
+                                            />
+                                            {editForm.errors.full_name && <p className="text-xs text-destructive">{editForm.errors.full_name}</p>}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Email Address</Label>
+                                            <Input
+                                                type="email"
+                                                value={editForm.data.email}
+                                                onChange={(e) => editForm.setData('email', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Phone Number</Label>
+                                            <Input
+                                                value={editForm.data.phone}
+                                                onChange={(e) => editForm.setData('phone', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Joining Date <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                type="date"
+                                                value={editForm.data.joining_date}
+                                                onChange={(e) => editForm.setData('joining_date', e.target.value)}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Status</Label>
+                                            <ReactSelect
+                                                options={[
+                                                    { value: 'active', label: 'Active' },
+                                                    { value: 'inactive', label: 'Inactive' },
+                                                ]}
+                                                value={[
+                                                    { value: 'active', label: 'Active' },
+                                                    { value: 'inactive', label: 'Inactive' },
+                                                ].find(o => o.value === editForm.data.status) || null}
+                                                onChange={(opt) => editForm.setData('status', opt ? (opt.value as any) : 'active')}
+                                                styles={customReactSelectStyles}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Email Address</Label>
-                                        <Input
-                                            type="email"
-                                            value={editForm.data.email}
-                                            onChange={(e) => editForm.setData('email', e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Phone Number</Label>
-                                        <Input
-                                            value={editForm.data.phone}
-                                            onChange={(e) => editForm.setData('phone', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Joining Date <span className="text-destructive">*</span></Label>
-                                        <Input
-                                            type="date"
-                                            value={editForm.data.joining_date}
-                                            onChange={(e) => editForm.setData('joining_date', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Status</Label>
-                                        <ReactSelect
-                                            options={[
-                                                { value: 'active', label: 'Active' },
-                                                { value: 'inactive', label: 'Inactive' },
-                                            ]}
-                                            value={[
-                                                { value: 'active', label: 'Active' },
-                                                { value: 'inactive', label: 'Inactive' },
-                                            ].find(o => o.value === editForm.data.status) || null}
-                                            onChange={(opt) => editForm.setData('status', opt ? (opt.value as any) : 'active')}
-                                            styles={customReactSelectStyles}
-                                        />
-                                    </div>
-                                </div>
-
-                                <DialogFooter className="border-t pt-4 mt-4">
+                                <DialogFooter>
                                     <Button type="button" variant="outline" onClick={() => setEditingEmployee(null)}>Cancel</Button>
                                     <Button type="submit" disabled={editForm.processing} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold">
                                         Save Changes
